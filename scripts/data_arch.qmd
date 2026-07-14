@@ -145,7 +145,7 @@ chunk_output_type: console
     # Merging Sample and Soil Core Metadata table
     sample_metadata_tbl <-
     smpl_metadata_tbl %>% 
-      mutate(Lab_ID = paste0(Core_ID, Depth_m)) %>%
+      mutate(Lab_ID = paste0(Core_ID, Depth_m)) %>% 
       select(-c(Core_ID, Depth_m)) %>%
       left_join(soil_metadata_tbl, by = "Lab_ID") %>% 
       relocate(Lab_ID)
@@ -176,10 +176,14 @@ chunk_output_type: console
              Run = "mtg_jun26",
              Project = "roots_metabar",
              Primer = str_extract(forward_tag_name, "^[^-]*"),
+             Lab_ID = case_when(!str_detect(Lab_ID, "^CN") ~ paste0(Primer, "_", Lab_ID), 
+                                TRUE ~ Lab_ID),
+             sample = case_when(!str_detect(sample, "^CN") ~ paste0(Primer, "_", sample), 
+                                TRUE ~ sample),
              Type = case_when(str_detect(sample, "^CN") ~ "PCR Control", 
-                                TRUE ~ "Sample"),
+                                TRUE ~ "sample"),
              `Metadata 2` = case_when(!str_detect(Lab_ID, "^CN") ~
-                                      str_extract(Lab_ID, "(?<=L).*"),
+                                      str_extract(Lab_ID, "(?<=_L).*"),
                                       TRUE ~ Lab_ID),
              `Extraction control` = NA,
              `PCR control` = case_when(!str_detect(sample, "^CN") ~ CN, 
@@ -235,5 +239,6 @@ chunk_output_type: console
 
     # Saving
     write.csv(primers_n_samples,
-      file = paste0(data_path, paste0("/roots_metabar-primers_n_samples-", Sys.Date(), ".csv")))
+      file = paste0(data_path, paste0("/roots_metabar-primers_n_samples-", Sys.Date(), ".csv")),
+      row.names = FALSE)
     ```
